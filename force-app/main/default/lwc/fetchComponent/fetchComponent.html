@@ -1,0 +1,34 @@
+<template>
+    <header class = "header-class slds-page-header">
+        Data Retrival
+    </header>
+
+    <div>
+        <lightning-combobox
+          name="Obj"
+          label="Select Object"
+          value={value}
+          placeholder="Select Object"
+          options={options}
+          onchange={handleChange} 
+          onclick={handleClick}
+        ></lightning-combobox>
+        <p>Selected Object is : {value}</p>
+
+    </div>
+    <lightning-layout>
+        
+        <template if:true={value}>
+            <div style="height: 400px;">
+                <lightning-datatable
+                        key-field="Id"
+                        show-row-number-column="true"
+                        data={data}
+                        columns={columns}>
+                </lightning-datatable>
+            </div>
+        </template>
+    </lightning-layout>
+
+    
+</template>

@@ -1,0 +1,10 @@
+<template>
+    <c-Modal  lwc:if={showModal} class="slds-modal__container"  title="Filters" show-on-render onmodalhidden={hide} content-padding="none" modal-container-style="max-width: 35rem;" >
+        <div class=slds-p-around_small>
+            <template for:each={filters} for:item="filter">
+                <div key={filter.id} class="msj-card slds-m-bottom_xx-small" style="overflow:hidden;">
+                </div>
+            </template>
+        </div>
+    </c-Modal>
+</template>

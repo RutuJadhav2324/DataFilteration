@@ -1,0 +1,152 @@
+<template>
+    
+    <header class="header-class slds-page-header slds-m-bottom_x-small"> Account Records
+    <span class="span-button">
+        <lightning-button 
+            variant="brand-outline"
+            label="Filter"
+            onclick={handleClick}
+            class="slds-m-left_x-small button-Filter" >
+        </lightning-button>
+            
+            <template if:true={showModal}>
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container ">
+                            <!---modal header start-->
+                            <header class="slds-modal__header  head-name">
+                                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
+                                    <lightning-icon icon-name="utility:close"
+                                    alternative-text="close"
+                                    variant="inverse"
+                                    size="small" ></lightning-icon>
+                                    <span class="slds-assistive-text">Close</span>
+                                </button>
+                                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate ">Filters</h2>
+                            </header>
+                         <!-- modal header end **** -->
+
+                         <!-- modal body start -->
+                            
+                          
+                            <div class="slds-scrollable_y" style="background-color: white;">
+                                <template for:each={accordionSections} for:item="section">
+                                    <div key={section.id} class="msj-card slds-m-bottom_xx-small" style="overflow:hidden;">
+                                        <lightning-accordion allow-multiple-sections-open="true" onsectiontoggle={handleSectionToggle} active-section-name={activeSections}>
+                                            <lightning-accordion-section class="slds-box slds-m-around_xxx-small acc-sec"
+                                                    name='section'
+                                                    label={section.section}>
+                                                    <lightning-input
+                                                            lwc:if={section.searchable} 
+                                                             class="js-search-input slds-m-bottom_large" 
+                                                             label="Search"
+                                                             variant="label-hidden"
+                                                             type="search"
+                                                             onchange={handleSearchByText}
+                                                             placeholder="Search by name..."
+                                                             value={section.searchText}
+                                                             data-section={section.section}>
+                                                            </lightning-input>
+                                                            
+
+                                                            <div slot="actions" class="slds-text-body_small slds-text-color_weak slds-align_absolute-center" > {section.selectedCount} selected</div>
+                    
+                                                            <div class="msj-filter-section">
+                                                                <ul class="slds-grid slds-gutters_direct-x-small slds-wrap">
+                                                                   
+                                                                 
+                                                                       
+                                                                                    <template for:each={section.picklistValues} for:item="picklistValue">
+                                                                                         <li lwc:if={picklistValue.visible} key={picklistValue.label} class="slds-col slds-size_1-of-2">
+                                                                                           
+                                                                                                <lightning-input
+                                                                                                     class="js-filter1 slds-scrollable_y"
+                                                                                                     type={picklistValue.type}
+                                                                                                     label={picklistValue.label}
+                                                                                                     checked={picklistValue.checked}
+                                                                                                     onchange={handlePicklistSelection}
+                                                                                                     data-section={section.section}
+                                                                                                     name={picklistValue.name}>
+                                                                                                   
+                                                                                                     </lightning-input>
+
+                                                                                                   <template if:true={picklistValue.error}>  <!-- Display error specific to each picklist value -->
+                                                                                                    <p style="color: red;">{picklistValue.error}</p>
+                                                                                                </template>
+                                                                                                
+                                                                                                
+                                                                                         </li>
+                                                                                        
+                                                                                    </template>
+
+                                                                                   
+                                                                                 
+                                                                                <!-- </template> -->
+                                                                             
+                                                                               
+                                                                             
+                                                                    </ul>
+                                                                </div>
+                                                            </lightning-accordion-section>
+                                                            </lightning-accordion>
+                                                        </div>
+                                                     </template>
+                                                      </div>
+    
+                                                                   
+                                                                  
+                                                                     
+                         <!-- modal body end *******-->
+
+                            <!-- modal footer start -->
+                           
+                            <footer class="slds-modal__footer  accordian-footer">
+                              
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_2-of-12">
+                                <span class="span-footer">
+                                         <button class="slds-button slds-button_neutral" aria-label="Clear All" onclick={handleClearAll}>Clear All</button>
+                                </span>
+                                     </div>
+                                     
+
+                                     <div class="slds-col slds-size_6-of-12">
+                                    </div>
+                                    <div class="slds-col slds-size_4-of-12">
+                                        <span>
+                                            <button class="slds-button slds-button_neutral" aria-label="Cancel and close" onclick={hideModalBox}>Cancel</button>
+                                            <button class="slds-button slds-button_brand" onclick={handleApplyValues}>Apply</button>
+                                        </span>
+                                    </div>
+                                </div>
+                           
+                            </footer>
+                          
+                       
+                            <!-- modal footer end ****** -->
+
+                </div>
+                </section>
+                    <div class="slds-backdrop slds-backdrop_open"></div>  
+            </template>
+
+            
+            
+           
+            
+ </span>
+</header> 
+
+                
+                <lightning-layout >
+                     <div class="slds-grid " style="height: 400px;">
+                        <lightning-datatable
+                                    key-field="Id"
+                                    show-row-number-column="true"
+                                    data={data}
+                                    columns={columns}>
+                         </lightning-datatable>
+                    </div>
+                </lightning-layout>
+
+
+</template>
