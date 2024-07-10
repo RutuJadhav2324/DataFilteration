@@ -1,7 +1,8 @@
 import { LightningElement, wire,track } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import AccRec from '@salesforce/apex/AccountRecords.AccRec';
 import getData from '@salesforce/apex/PicklistValues.getData';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 
 
 const columns=[
@@ -39,6 +40,7 @@ export default class AccountRec extends LightningElement {
      @track data=[];
     @track originalData = [];//copy of data to get origanl data
     @track columns=columns;
+    
    
 //new
     @track industry = [];
@@ -73,7 +75,7 @@ export default class AccountRec extends LightningElement {
         if (data) {
             console.log('Received data:', data);
 
-            // Prepare accordion sections based on data received
+            // accordion sections based on data received
             this.accordionSections = [
                 {
                     section: 'Date Range',
@@ -143,7 +145,7 @@ export default class AccountRec extends LightningElement {
         
     }
     handlePicklistSelection(event) {
-        // Handle picklist selection change here
+        //picklist selection change here
         const selectedSection = event.target.dataset.section;
         const selectedLabel = event.target.label;
          const isChecked = event.target.checked;
@@ -166,19 +168,29 @@ export default class AccountRec extends LightningElement {
             } else {
                 sectionToUpdate.selectedCount--;
             }
+
+            if (picklistValueToUpdate.type === 'date') {
+                const { name, value } = event.target;
+                if (name === 'startDate') {
+                    this.StartDate = value;
+                } else if (name === 'endDate') {
+                    this.EndDate = value;
+                }
+                this.validateDates();
+            }
         }
         
      }
       // Date 
-        const { name, value } = event.target;
-    if (name === 'StartDate') {
-        this.StartDate = value;
-    } else if (name === 'EndDate') {
-        this.EndDate = value;
-    }
+    //     const { name, value } = event.target;
+    // if (name === 'StartDate') {
+    //     this.StartDate = value;
+    // } else if (name === 'EndDate') {
+    //     this.EndDate = value;
+    // }
      
     
-    this.validateDates();
+    // this.validateDates();
  }
     //date sec
     get StartDate() {
@@ -193,23 +205,20 @@ export default class AccountRec extends LightningElement {
         if (this.StartDate && this.EndDate) {
             const startDate = new Date(this.StartDate);
             const endDate = new Date(this.EndDate);
-            
-         
-            this.accordionSections.forEach(section => {
-                if (section.section === 'Date Range') {
-                     section.picklistValues.forEach(picklistValue => {
-                        if (picklistValue.type === 'date') {
-                            const dateToValidate = new Date(picklistValue.checked);
-                            if (dateToValidate < startDate || dateToValidate > endDate) {
-                                picklistValue.error = 'Date must be between Start Date and End Date';
-                            } else {
-                                picklistValue.error = null;
-                            }
-                        }
-                    });
-                }
-            });
+
+            // Check if End Date is not less than Start Date
+            if (endDate < startDate) {
+                // Show error message or handle UI feedback
+                this.showToastMessage('End Date cannot be earlier than Start Date', 'error');
+            } else {
+                // Clear any previous error messages
+                this.clearToastMessages();
+            }
         }
+    }
+    clearDateRange() {
+        this.StartDate = null;
+        this.EndDate = null;
     }
 
     hideModalBox(){
@@ -247,6 +256,7 @@ export default class AccountRec extends LightningElement {
             // Reset all picklistValues and search text
             this.data=[...this.originalData];//clear all filters to get orignal data
             console.log('clear all clicked');
+            
             this.accordionSections.forEach(section => {
                 section.searchText=false;//search text false
                  if (section.section !== 'Date Range') {
@@ -267,33 +277,35 @@ export default class AccountRec extends LightningElement {
     }
     handleApplyValues() {
         this.selectedFilters = {};
-      //store selected filter
+    
+        // Store selected filters in this.selectedFilters object
         this.accordionSections.forEach(section => {
             this.selectedFilters[section.section] = section.picklistValues
                 .filter(pv => pv.checked)
                 .map(pv => pv.label);
         });
-   
-        if (Object.values(this.selectedFilters).some(filter => filter.length > 0)) {
-        this.filteredData = this.data.filter(record => {
-            return (!this.selectedFilters['Industry'].length || this.selectedFilters['Industry'].includes(record.Industry)) &&
-                (!this.selectedFilters['Billing City'].length || this.selectedFilters['Billing City'].includes(record.BillingCity)) &&
-                (!this.selectedFilters['Rating'].length || this.selectedFilters['Rating'].includes(record.Rating));
-        });
-      }
-
-        console.log('Selected Filters ', this.selectedFilters);
-        console.log('Filtered data:', this.filteredData);
     
-        this.data = [...this.filteredData];//  filteredData back to data for display in the table
+        if (Object.values(this.selectedFilters).some(filter => filter.length > 0)) {
+            this.filteredData = this.data.filter(record => {
+                return (!this.selectedFilters['Industry'].length || this.selectedFilters['Industry'].includes(record.Industry)) &&
+                    (!this.selectedFilters['Billing City'].length || this.selectedFilters['Billing City'].includes(record.BillingCity)) &&
+                    (!this.selectedFilters['Rating'].length || this.selectedFilters['Rating'].includes(record.Rating));
+            });
+        } 
+        this.data = [...this.filteredData];// Update this.data with filteredData 
         
+    
         
-       if (this.filteredData.length === 0) {
-            this.showToastMessage('No Records Found', 'Error');
+        if (this.filteredData.length === 0) {
+            this.showToastMessage('No Records Found', 'Error'); // Show toast message if no records found
         }
-           // Close the modal
+        console.log('apply button click');
+        // Close the modal
         this.hideModalBox();
+ 
     }
+    
+    
 
    
     
