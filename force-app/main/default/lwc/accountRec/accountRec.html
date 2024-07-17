@@ -133,16 +133,18 @@
 </header> 
 
                 
-                <lightning-layout >
-                     <div class="slds-grid " style="height: 400px;">
-                        <lightning-datatable
-                                    key-field="Id"
-                                    show-row-number-column="true"
-                                    data={data}
-                                    columns={columns}>
-                         </lightning-datatable>
-                    </div>
-                </lightning-layout>
+
+    <lightning-layout>
+        <div class="slds-grid" style="height: 400px;">
+            <lightning-datatable
+                key-field="Id"
+                show-row-number-column="true"
+                data={data}
+                columns={columns}>
+            </lightning-datatable>
+        </div>
+    </lightning-layout>
+
 
 
 </template>

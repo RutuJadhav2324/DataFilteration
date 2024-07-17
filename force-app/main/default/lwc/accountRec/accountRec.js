@@ -22,9 +22,10 @@ export default class AccountRec extends LightningElement {
     //@track dataOptions=[];
    // @track jsonData=[];
     @track picklistValues=[];
-    @track filteredData=[];
+    @track filteredData;
     @track selectedFilters;
     @track showModal=false;
+    @track resultWired;
      
     @track searchText;
     @track filteredPicklistValues=[];
@@ -37,7 +38,7 @@ export default class AccountRec extends LightningElement {
     //activeSectionsMessage = '';
    
     
-     @track data=[];
+     @track data;
     @track originalData = [];//copy of data to get origanl data
     @track columns=columns;
     
@@ -55,6 +56,7 @@ export default class AccountRec extends LightningElement {
     
     @wire(AccRec)
     accRecords({error,data}) {
+        this.resultWired=data;
         if (data) {
             this.data = data;
             this.originalData = data;
@@ -71,6 +73,7 @@ export default class AccountRec extends LightningElement {
     //for picklist 
    
     @wire(getData)
+    
     wiredData({ error, data }) {
         if (data) {
             console.log('Received data:', data);
@@ -168,6 +171,7 @@ export default class AccountRec extends LightningElement {
             } else {
                 sectionToUpdate.selectedCount--;
             }
+            
 
             if (picklistValueToUpdate.type === 'date') {
                 const { name, value } = event.target;
@@ -269,32 +273,35 @@ export default class AccountRec extends LightningElement {
                    
                 });
             });
+
             
          } catch(error) {
             console.error('Error clearing selections:', error);
         }
-        
+       
     }
     handleApplyValues() {
-        this.selectedFilters = {};
+        this.selectedFilters = [];
     
-        // Store selected filters in this.selectedFilters object
+        //Store selected filters in this.selectedFilters object
+       
         this.accordionSections.forEach(section => {
             this.selectedFilters[section.section] = section.picklistValues
                 .filter(pv => pv.checked)
                 .map(pv => pv.label);
         });
     
-        if (Object.values(this.selectedFilters).some(filter => filter.length > 0)) {
+    
             this.filteredData = this.data.filter(record => {
-                return (!this.selectedFilters['Industry'].length || this.selectedFilters['Industry'].includes(record.Industry)) &&
+                 return (!this.selectedFilters['Industry'].length || this.selectedFilters['Industry'].includes(record.Industry)) &&
                     (!this.selectedFilters['Billing City'].length || this.selectedFilters['Billing City'].includes(record.BillingCity)) &&
                     (!this.selectedFilters['Rating'].length || this.selectedFilters['Rating'].includes(record.Rating));
             });
-        } 
-        this.data = [...this.filteredData];// Update this.data with filteredData 
+            console.log('Filtered Data:',  Array.from(this.filteredData));
         
-    
+        this.data = [...this.filteredData];// Update this.data with filteredData 
+        console.log('Updated Data:',  Array.from(this.data));
+
         
         if (this.filteredData.length === 0) {
             this.showToastMessage('No Records Found', 'Error'); // Show toast message if no records found
@@ -302,14 +309,15 @@ export default class AccountRec extends LightningElement {
         console.log('apply button click');
         // Close the modal
         this.hideModalBox();
+      
+       //refreshApex(this.resultWired);
+       console.log('resultWired',this.resultWired);
+       
  
     }
     
     
-
-   
-    
-    showToastMessage(message, variant) {
+     showToastMessage(message, variant) {
         const evt = new ShowToastEvent({
             title: variant === 'error' ? 'Error' : 'Warning',
             message: message,
