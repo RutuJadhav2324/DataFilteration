@@ -22,7 +22,7 @@ export default class AccountRec extends LightningElement {
     //@track dataOptions=[];
    // @track jsonData=[];
     @track picklistValues=[];
-    @track filteredData;
+    @track filteredData=[];
     @track selectedFilters;
     @track showModal=false;
     @track resultWired;
@@ -35,6 +35,7 @@ export default class AccountRec extends LightningElement {
     @track error;
     @track checked;
     @track activeSections=['section'];
+    @track filterDataCopy=[];
     //activeSectionsMessage = '';
    
     
@@ -152,6 +153,7 @@ export default class AccountRec extends LightningElement {
         const selectedSection = event.target.dataset.section;
         const selectedLabel = event.target.label;
          const isChecked = event.target.checked;
+         const checkboxValue = event.target.label;
         
          console.log('selectedSection :-',selectedSection);
         console.log('selectedlabel :-',selectedLabel);
@@ -183,6 +185,14 @@ export default class AccountRec extends LightningElement {
                 this.validateDates();
             }
         }
+        this.accordionSections = this.accordionSections.map(section => {
+            if (section.label === checkboxValue) {
+                section.isCheckedNew = event.target.checked;
+            }
+            return section;
+        });
+    
+
         
      }
       // Date 
@@ -197,33 +207,33 @@ export default class AccountRec extends LightningElement {
     // this.validateDates();
  }
     //date sec
-    get StartDate() {
-        return this.StartDate ? this.StartDate.toISOString().slice(0, 10) : null;
-    }
+    // get StartDate() {
+    //     return this.StartDate ? this.StartDate.toISOString().slice(0, 10) : null;
+    // }
 
-    get EndDate() {
-        return this.EndDate ? this.EndDate.toISOString().slice(0, 10) : null;
-    }
+    // get EndDate() {
+    //     return this.EndDate ? this.EndDate.toISOString().slice(0, 10) : null;
+    // }
 
-    validateDates() {
-        if (this.StartDate && this.EndDate) {
-            const startDate = new Date(this.StartDate);
-            const endDate = new Date(this.EndDate);
+    // validateDates() {
+    //     if (this.StartDate && this.EndDate) {
+    //         const startDate = new Date(this.StartDate);
+    //         const endDate = new Date(this.EndDate);
 
-            // Check if End Date is not less than Start Date
-            if (endDate < startDate) {
-                // Show error message or handle UI feedback
-                this.showToastMessage('End Date cannot be earlier than Start Date', 'error');
-            } else {
-                // Clear any previous error messages
-                this.clearToastMessages();
-            }
-        }
-    }
-    clearDateRange() {
-        this.StartDate = null;
-        this.EndDate = null;
-    }
+    //         // Check if End Date is not less than Start Date
+    //         if (endDate < startDate) {
+    //             // Show error message or handle UI feedback
+    //             this.showToastMessage('End Date cannot be earlier than Start Date', 'error');
+    //         } else {
+    //             // Clear any previous error messages
+    //             this.clearToastMessages();
+    //         }
+    //     }
+    // }
+    // clearDateRange() {
+    //     this.StartDate = null;
+    //     this.EndDate = null;
+    // }
 
     hideModalBox(){
         
@@ -258,10 +268,13 @@ export default class AccountRec extends LightningElement {
      handleClearAll() {
         try {
             // Reset all picklistValues and search text
+            
+            
             this.data=[...this.originalData];//clear all filters to get orignal data
             console.log('clear all clicked');
             
             this.accordionSections.forEach(section => {
+                this.selectedFilters = {};
                 section.searchText=false;//search text false
                  if (section.section !== 'Date Range') {
                     section.selectedCount = 0; // Reset selected count
@@ -270,8 +283,7 @@ export default class AccountRec extends LightningElement {
                     picklistValue.checked = false;
                     picklistValue.visible = true; // Reset visibility 
                     picklistValue.error = null; // Reset any errors
-                   
-                });
+                 });
             });
 
             
@@ -281,26 +293,34 @@ export default class AccountRec extends LightningElement {
        
     }
     handleApplyValues() {
-        this.selectedFilters = [];
+        this.filteredData = [];
+        
     
         //Store selected filters in this.selectedFilters object
-       
+        this.selectedFilters = {};
         this.accordionSections.forEach(section => {
             this.selectedFilters[section.section] = section.picklistValues
                 .filter(pv => pv.checked)
                 .map(pv => pv.label);
-        });
+            });
     
-    
-            this.filteredData = this.data.filter(record => {
+        // Filter data based on selected filters
+        if (this.selectedFilters['Industry'].length || this.selectedFilters['Billing City'].length || this.selectedFilters['Rating'].length) {
+            
+            this.filteredData = this.originalData.filter(record => {
                  return (!this.selectedFilters['Industry'].length || this.selectedFilters['Industry'].includes(record.Industry)) &&
                     (!this.selectedFilters['Billing City'].length || this.selectedFilters['Billing City'].includes(record.BillingCity)) &&
                     (!this.selectedFilters['Rating'].length || this.selectedFilters['Rating'].includes(record.Rating));
+                   
+                   
             });
-            console.log('Filtered Data:',  Array.from(this.filteredData));
+        }
+   
+            
+            console.log('Filtered Data:',  JSON.stringify(this.filteredData));
         
         this.data = [...this.filteredData];// Update this.data with filteredData 
-        console.log('Updated Data:',  Array.from(this.data));
+        console.log('Updated Data:',  JSON.stringify(Array.from(this.data)));
 
         
         if (this.filteredData.length === 0) {
@@ -311,10 +331,11 @@ export default class AccountRec extends LightningElement {
         this.hideModalBox();
       
        //refreshApex(this.resultWired);
-       console.log('resultWired',this.resultWired);
+      // console.log('resultWired',JSON.stringify(this.resultWired));
        
  
     }
+    
     
     
      showToastMessage(message, variant) {
